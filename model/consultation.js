@@ -1,37 +1,79 @@
 const mongoose = require('mongoose');
 
-const reservationSchema = new mongoose.Schema({
-  patient: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Patient',
-    required: true,
-  },
+const consultationSchema = new mongoose.Schema({
   doctor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Doctor',
     required: true,
   },
-  date: {
-    type: Date,
-    required: [true, 'Please provide a date for the reservation'],
+  patient: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Patient',
+    required: true,
   },
-  timeSlot: {
+  reservation: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Reservation',
+  },
+  diagnosis: {
     type: String,
-    required: [true, 'Please choose a time slot'],
+    required: [true, 'Please provide a diagnosis'],
   },
-  status: {
+  notes: {
     type: String,
-    enum: ['pending', 'confirmed', 'cancelled', 'completed'],
-    default: 'pending',
+    maxlength: 1000,
   },
-  reasonForVisit: {
+
+  // 🔥 New additions:
+  vitals: {
+    temperature: Number,
+    bloodPressure: String, // e.g. '120/80'
+    heartRate: Number,
+    respiratoryRate: Number,
+    oxygenSaturation: Number,
+  },
+
+  prescriptions: [
+    {
+      medication: String,
+      dosage: String,
+      frequency: String,
+      duration: String,
+    },
+  ],
+
+  labTests: [String], // e.g., ['X-ray', 'Blood Test']
+
+  followUpDate: Date,
+
+  // 💉 Surgery
+  surgeryRequired: {
+    type: Boolean,
+    default: false,
+  },
+  surgeryDetails: {
     type: String,
-    maxlength: 300,
   },
+  surgeryDate: Date,
+  surgeryBooked: {
+    type: Boolean,
+    default: false,
+  },
+
+  // 🔁 Referral
+  referred: {
+    type: Boolean,
+    default: false,
+  },
+  referredTo: {
+    type: String, // could be another specialization, hospital, or doctor name
+  },
+
+  // 📅 Date info
   createdAt: {
     type: Date,
     default: Date.now,
   },
 });
-const Consultation = mongoose.model('Consultation', reservationSchema);
+const Consultation = mongoose.model('Consultation', consultationSchema);
 module.exports = Consultation;
