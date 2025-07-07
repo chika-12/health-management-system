@@ -71,4 +71,32 @@ exports.protect = catchAsync(async (req, res, next) => {
   if (!token) {
     return next(new AppError('You are not logged in', 401));
   }
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    res.status(500).json({
+      status: 'success',
+      message: 'an error occured',
+      error: err,
+    });
+  }
+
+  const currentUser = await PatientData.findById(decoded.id);
+  if (!currentUser) {
+    return next(new AppError('user does no longer exits', 401));
+  }
+  if (currentUser.changedPassword(decoded.iat)) {
+    return next(new AppError('Password was changed. Please login', 401));
+  }
+  req.user = currentUser;
+  next();
 });
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(new AppError('Unathorised action', 401));
+    }
+    next();
+  };
+};

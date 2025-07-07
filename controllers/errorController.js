@@ -30,11 +30,13 @@ const errorController = (err, req, res, next) => {
   const error = { ...err };
   error.message = err.message;
   error.stack = err.stack;
+
   if (process.env.NODE_ENV === 'production') {
     production(error, res);
   }
   if (process.env.NODE_ENV === 'development') {
     development(error, res);
+    //console.log('The error');
   }
 };
 module.exports = errorController;

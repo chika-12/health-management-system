@@ -10,8 +10,10 @@ const hpp = require('hpp');
 const cookiePaser = require('cookie-parser');
 const errorController = require('./controllers/errorController');
 const AppError = require('./utilities/appError');
+const userControllers = require('./routes/getingUsersInfo');
 const userAuthenticationRoute = require('./routes/userAuthentication');
 const cookieParser = require('cookie-parser');
+const tutorialRoute = require('./routes/tutorialRoute');
 
 app.use(helmet());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -34,6 +36,8 @@ app.use((req, res, next) => {
 app.use(cookieParser()); //Checks for cookie
 
 app.use('/api/auth', userAuthenticationRoute);
+app.use('/api/v1/users', userControllers);
+app.use('/api/v1/tutorial', tutorialRoute);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));

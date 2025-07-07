@@ -78,6 +78,13 @@ const patientSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  photo: {
+    type: String,
+    default: 'default.jpg',
+  },
+  userTestResult: {
+    type: String,
+  },
   passwordChangedAt: Date,
   createdAt: {
     type: Date,
@@ -98,7 +105,9 @@ patientSchema.methods.correctPassword = async function (enteredPassword) {
 };
 
 patientSchema.pre(/^find/, function (next) {
-  this.find({ active: { $ne: false } });
+  if (!this.getOptions || !this.getOptions().bypassFilter) {
+    this.find({ active: { $ne: false } });
+  }
   next();
 });
 
