@@ -1,14 +1,15 @@
 const mongoose = require('mongoose');
+const encryption = require('mongoose-encryption');
 
 const consultationSchema = new mongoose.Schema({
   doctor: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Doctor',
+    ref: 'DoctorData',
     required: true,
   },
   patient: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Patient',
+    ref: 'PatientData',
     required: true,
   },
   reservation: {
@@ -74,6 +75,17 @@ const consultationSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+});
+consultationSchema.plugin(encryption, {
+  secret: process.env.ENCRYPTION_KEY,
+  encryptedFields: [
+    'diagnosis',
+    'notes',
+    'vitals',
+    'prescriptions',
+    'surgeryDetails',
+    'referredTo',
+  ],
 });
 const Consultation = mongoose.model('Consultation', consultationSchema);
 module.exports = Consultation;

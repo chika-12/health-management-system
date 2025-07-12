@@ -16,6 +16,7 @@ const cookieParser = require('cookie-parser');
 const tutorialRoute = require('./routes/tutorialRoute');
 const medicalPersonel = require('./routes/medicalPersonelAuthentication');
 const doctorsRoute = require('./routes/doctorsControllers');
+const booking = require('./routes/bookingRoute');
 
 app.use(helmet());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -42,6 +43,7 @@ app.use('/api/v1/users', userControllers);
 app.use('/api/v1/tutorial', tutorialRoute);
 app.use('/api/v1/doctors/auth', medicalPersonel);
 app.use('/api/v1/doctors', doctorsRoute);
+app.use('/api/v1/booking', booking);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));

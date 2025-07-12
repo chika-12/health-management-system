@@ -17,11 +17,16 @@ const doctorSchema = new mongoose.Schema({
     required: [true, 'password required'],
     minlength: 8,
     maxlength: 50,
+    select: false,
   },
   role: {
     type: String,
     enum: ['patient', 'admin', 'doctor'],
     default: 'doctor',
+  },
+  languageSpoken: {
+    type: [String],
+    default: ['English'],
   },
   passwordConfirm: {
     type: String,

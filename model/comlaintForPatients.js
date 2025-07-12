@@ -1,12 +1,12 @@
 const ComplaintReportSchema = new mongoose.Schema({
   patient: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'PatientData',
     required: true,
   },
   doctor: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Doctor',
+    ref: 'DoctorData',
     required: true,
   },
   description: { type: String, required: true },
