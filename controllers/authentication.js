@@ -1,8 +1,7 @@
-const PatientData = require('../model/patientsData');
+//const PatientData = require('../model/patientsData');
 const catchAsync = require('../utilities/catchAsync');
 const AppError = require('../utilities/appError');
 const jwt = require('jsonwebtoken');
-const { token } = require('morgan');
 
 const signToken = (id, user, statusCode, res) => {
   const token = jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -28,25 +27,27 @@ const signToken = (id, user, statusCode, res) => {
   });
 };
 
-exports.signUp = catchAsync(async (req, res, next) => {
-  const user = await PatientData.create(req.body);
-  if (!user) {
-    return next(new AppError('patient not registered', 400));
-  }
-  signToken(user.id, user, 200, res);
-});
+exports.signUpControl = (model) =>
+  catchAsync(async (req, res, next) => {
+    const user = await model.create(req.body);
+    if (!user) {
+      return next(new AppError('patient not registered', 400));
+    }
+    signToken(user.id, user, 200, res);
+  });
 
-exports.login = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return next(new AppError('Invalid email or password', 400));
-  }
-  const user = await PatientData.findOne({ email: email }).select('+password');
-  if (!user || !(await user.correctPassword(password))) {
-    return next(new AppError('Invalid email or password', 400));
-  }
-  signToken(user.id, user, 200, res);
-});
+exports.loginControl = (model) =>
+  catchAsync(async (req, res, next) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return next(new AppError('Invalid email or password', 400));
+    }
+    const user = await model.findOne({ email: email }).select('+password');
+    if (!user || !(await user.correctPassword(password))) {
+      return next(new AppError('Invalid email or password', 400));
+    }
+    signToken(user.id, user, 200, res);
+  });
 exports.logout = catchAsync(async (req, res, next) => {
   res.cookie('jwt', 'loggedout', {
     expires: new Date(Date.now() + 5 * 1000),
@@ -58,40 +59,41 @@ exports.logout = catchAsync(async (req, res, next) => {
     messege: 'user logged out',
   });
 });
-exports.protect = catchAsync(async (req, res, next) => {
-  let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies.jwt) {
-    token = req.cookies.jwt;
-  }
-  if (!token) {
-    return next(new AppError('You are not logged in', 401));
-  }
-  let decoded;
-  try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET);
-  } catch (err) {
-    res.status(500).json({
-      status: 'success',
-      message: 'an error occured',
-      error: err,
-    });
-  }
+exports.protectControl = (model) =>
+  catchAsync(async (req, res, next) => {
+    let token;
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith('Bearer')
+    ) {
+      token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies.jwt) {
+      token = req.cookies.jwt;
+    }
+    if (!token) {
+      return next(new AppError('You are not logged in', 401));
+    }
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      res.status(500).json({
+        status: 'success',
+        message: 'an error occured',
+        error: err,
+      });
+    }
 
-  const currentUser = await PatientData.findById(decoded.id);
-  if (!currentUser) {
-    return next(new AppError('user does no longer exits', 401));
-  }
-  if (currentUser.changedPassword(decoded.iat)) {
-    return next(new AppError('Password was changed. Please login', 401));
-  }
-  req.user = currentUser;
-  next();
-});
+    const currentUser = await model.findById(decoded.id);
+    if (!currentUser) {
+      return next(new AppError('user does no longer exits', 401));
+    }
+    if (currentUser.changedPassword(decoded.iat)) {
+      return next(new AppError('Password was changed. Please login', 401));
+    }
+    req.user = currentUser;
+    next();
+  });
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {

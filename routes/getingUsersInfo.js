@@ -2,9 +2,10 @@ const express = require('express');
 const userRoute = express.Router();
 const usersController = require('../controllers/userControllers');
 const authentication = require('../controllers/authentication');
+const userAuthentication = require('../controllers/userAuthentication');
 const fileController = require('../controllers/fileController');
 
-userRoute.use(authentication.protect);
+userRoute.use(userAuthentication.protect);
 //Get all users
 userRoute
   .route('/allusers')

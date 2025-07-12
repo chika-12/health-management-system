@@ -82,6 +82,11 @@ const patientSchema = new mongoose.Schema({
     type: String,
     default: 'default.jpg',
   },
+  role: {
+    type: String,
+    enum: ['patient', 'admin', 'doctor'],
+    default: 'patient',
+  },
   userTestResult: {
     type: String,
   },

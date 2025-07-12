@@ -10,12 +10,14 @@ const cache = require('../utilities/cache');
 
 // multer configuration for memory optimization and cloudinary upload
 const storage = multer.memoryStorage();
-
+// maximum size of video
+const MAX_FILE_SIZE = 100 * 1024 * 1024;
+exports.MAX_FILE_SIZE = MAX_FILE_SIZE;
 //Setting file type
 const upload = multer({
   storage,
   limits: {
-    fileSize: 20 * 1024 * 1024,
+    fileSize: MAX_FILE_SIZE,
   },
   fileFilter: (req, file, cb) => {
     const allowedFiles = ['video/mp4', 'image/jpeg', 'image/png', 'image/jpg'];
@@ -30,9 +32,8 @@ const upload = multer({
 const responseHandler = (statusCode, res, data) => {
   res.status(statusCode).json({
     status: 'success',
-    response: {
-      data,
-    },
+    result: data.length,
+    data,
   });
 };
 
@@ -61,6 +62,10 @@ exports.saveVideo = catchAsync(async (req, res, next) => {
     });
   };
   const result = await uploadToCloudinary(req.file.buffer);
+  if (!result || !result.secure_url) {
+    return next(new AppError('Upload failed', 500));
+  }
+  // Mongoose schema will validate required fields like title & description
   const video = await Tutorial.create({
     title: req.body.title,
     description: req.body.description,
@@ -68,6 +73,7 @@ exports.saveVideo = catchAsync(async (req, res, next) => {
     postedBy: req.user.id, // Doctor ID
     tags: req.body.tags,
   });
+  cache.del('tutorialVideos');
 
   responseHandler(200, res, video);
 });
@@ -76,7 +82,11 @@ exports.saveVideo = catchAsync(async (req, res, next) => {
 exports.uploadTutorialImage = upload.array('image', 5);
 exports.savePhotoToCloudinary = catchAsync(async (req, res, next) => {
   let uploadedImages = [];
+
   if (req.files && req.files.length > 0) {
+    if (uploadedImages.length > 5) {
+      return next(new AppError('you can only upload 5 images', 400));
+    }
     const uploadToCloudinary = (fileBuffer) => {
       return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -109,7 +119,7 @@ exports.savePhotoToCloudinary = catchAsync(async (req, res, next) => {
     postedBy: req.user.id,
     tags: req.body.tags || [],
   });
-
+  cache.del('allArticles');
   responseHandler(200, res, article);
 });
 

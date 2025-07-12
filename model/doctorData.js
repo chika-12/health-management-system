@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const doctorSchema = new mongoose.Schema({
   name: {
@@ -10,6 +11,27 @@ const doctorSchema = new mongoose.Schema({
     required: [true, 'A doctor must have an email'],
     unique: true,
     lowercase: true,
+  },
+  password: {
+    type: String,
+    required: [true, 'password required'],
+    minlength: 8,
+    maxlength: 50,
+  },
+  role: {
+    type: String,
+    enum: ['patient', 'admin', 'doctor'],
+    default: 'doctor',
+  },
+  passwordConfirm: {
+    type: String,
+    rquired: [true, 'confirm your password'],
+    validate: {
+      validator: function (value) {
+        return this.password === value;
+      },
+      message: 'Password do not match',
+    },
   },
   phone: {
     type: String,
@@ -49,6 +71,10 @@ const doctorSchema = new mongoose.Schema({
     type: String,
     maxlength: 500,
   },
+  active: {
+    type: Boolean,
+    default: true,
+  },
   availability: {
     type: Boolean,
     default: true,
@@ -57,6 +83,39 @@ const doctorSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+});
+
+doctorSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) {
+    return next;
+  }
+  this.password = await bcrypt.hash(this.password, 12);
+  this.passwordConfirm = undefined;
+  next();
+});
+doctorSchema.methods.correctPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+doctorSchema.pre(/^find/, function (next) {
+  if (!this.getOptions || !this.getOptions().bypassFilter) {
+    this.find({ active: { $ne: false } });
+  }
+  next();
+});
+
+doctorSchema.methods.changedPassword = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changeTime = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+    console.log(this.passwordChangedAt, JWTTimestamp);
+    return JWTTimestamp < changeTime;
+  }
+  return false;
+};
+
+doctorSchema.pre('save', function (next) {
+  if (!this.isModified('password')) return next();
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
 });
 const DoctorData = mongoose.model('DoctorData', doctorSchema);
 module.exports = DoctorData;
