@@ -57,3 +57,21 @@ exports.bookDoctor = catchAsync(async (req, res, next) => {
     },
   });
 });
+exports.comfirmBooking = catchAsync(async (req, res, next) => {
+  const state = req.body.status;
+  const doctorId = req.user.id;
+  const reservation = await Reservation.findById(req.body.id);
+  if (!reservation || reservation.doctor.toString() != doctorId) {
+    return next(new AppError('You do not have any pending reservation', 404));
+  }
+  if (reservation.status !== 'pending') {
+    return next(new AppError('Reservation is not pending', 400));
+  }
+
+  reservation.status = state;
+  await reservation.save({ validateBeforeSave: false });
+  res.status(200).json({
+    status: 'success',
+    message: `request ${state}`,
+  });
+});
