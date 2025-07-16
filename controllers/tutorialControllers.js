@@ -7,6 +7,7 @@ const Article = require('../model/articleModel');
 const streamifier = require('streamifier');
 const Tutorial = require('../model/tutorial');
 const cache = require('../utilities/cache');
+const ApiFeatures = require('../utilities/apiFeatures');
 
 // multer configuration for memory optimization and cloudinary upload
 const storage = multer.memoryStorage();
@@ -126,26 +127,36 @@ exports.savePhotoToCloudinary = catchAsync(async (req, res, next) => {
 //Get routes for getting tutorials(videos and atricles)
 
 exports.retriveAllTutorialVideos = catchAsync(async (req, res, next) => {
-  let videos = cache.get('tutorialVideos');
+  const cachedKey = req.originalUrl;
+  let videos = cache.get(cachedKey);
   if (!videos) {
-    videos = await Tutorial.find();
+    videos = await new ApiFeatures(Tutorial.find(), req.query)
+      .filtering()
+      .sorting()
+      .fields()
+      .pagination().query;
     if (videos.length === 0) {
       return next(new AppError('No videos found', 404));
     }
-    cache.set('tutorialVideos', videos);
+    cache.set(cachedKey, videos, 60);
   }
 
   responseHandler(200, res, videos);
 });
 
 exports.retriveAllArticles = catchAsync(async (req, res, next) => {
-  let articles = cache.get('allArticles');
+  const cachedKey = req.originalUrl;
+  let articles = cache.get(cachedKey);
   if (!articles) {
-    articles = await Article.find();
+    articles = await new ApiFeatures(Article.find(), req.query)
+      .filtering()
+      .fields()
+      .sorting()
+      .pagination().query;
     if (articles.length === 0) {
       return next(new AppError('No article found', 404));
     }
-    cache.set('allArticles', articles);
+    cache.set(cachedKey, articles);
   }
   responseHandler(200, res, articles);
 });
