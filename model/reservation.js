@@ -33,5 +33,12 @@ const reservationSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+reservationSchema.pre(/^find/, function (next) {
+  this.populate({ path: 'doctor', select: 'name specilization' }).populate({
+    path: 'patient',
+    select: 'name',
+  });
+  next();
+});
 const Reservation = mongoose.model('Reservation', reservationSchema);
 module.exports = Reservation;

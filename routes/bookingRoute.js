@@ -19,6 +19,7 @@ booking
     generalAuthentication.restrictTo('patient'),
     bookingController.findSpecialiseDoctor
   );
+
 booking
   .route('/book')
   .post(

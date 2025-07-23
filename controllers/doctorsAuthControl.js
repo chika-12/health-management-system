@@ -13,3 +13,4 @@ exports.getDoctorById = factory.retriveById(DoctorData);
 exports.delete = factory.delete(DoctorData);
 exports.restoreDeleted = factory.reactivate(DoctorData);
 exports.register = factory.register(DoctorData);
+exports.updateProfile = factory.updateProfile(DoctorData);

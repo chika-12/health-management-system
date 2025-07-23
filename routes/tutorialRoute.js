@@ -20,15 +20,13 @@ tutorialRoute
   );
 
 //Article writing
-tutorialRoute
-  .route('/writeup')
-  .post(
-    authentication.restrictTo('doctor'),
-    multerError(tutorialControllers.uploadTutorialImage),
-    validatorRequirement.articleValidator,
-    validationResult,
-    tutorialControllers.savePhotoToCloudinary
-  );
+tutorialRoute.route('/writeup').post(
+  authentication.restrictTo('doctor'),
+  multerError(tutorialControllers.uploadTutorialImage),
+  //validatorRequirement.articleValidator,
+  validationResult,
+  tutorialControllers.savePhotoToCloudinary
+);
 tutorialRoute
   .route('/retrive_videos')
   .get(tutorialControllers.retriveAllTutorialVideos);

@@ -7,7 +7,6 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const xss = require('xss-clean');
 const hpp = require('hpp');
-const cookiePaser = require('cookie-parser');
 const errorController = require('./controllers/errorController');
 const AppError = require('./utilities/appError');
 const userControllers = require('./routes/getingUsersInfo');
@@ -17,6 +16,7 @@ const tutorialRoute = require('./routes/tutorialRoute');
 const medicalPersonel = require('./routes/medicalPersonelAuthentication');
 const doctorsRoute = require('./routes/doctorsControllers');
 const booking = require('./routes/bookingRoute');
+const reservation = require('./routes/retriveResevation');
 
 app.use(helmet());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -25,6 +25,16 @@ app.use(express.json({ limit: '10kb' }));
 app.use(mongoSanitize());
 app.use(xss());
 
+// app.use(
+//   session({
+//     secret: 'process.env.SESSION_SECRET',
+//     resave: false,
+//     saveUninitialized: true,
+//   })
+// );
+
+// app.use(passport.initialize());
+// app.use(passport.session());
 const limiter = rateLimit({
   max: 100,
   windowsMs: 60 * 60 * 1000,
@@ -44,6 +54,7 @@ app.use('/api/v1/tutorial', tutorialRoute);
 app.use('/api/v1/doctors/auth', medicalPersonel);
 app.use('/api/v1/doctors', doctorsRoute);
 app.use('/api/v1/booking', booking);
+app.use('/api/v1/reservation', reservation);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));

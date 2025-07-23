@@ -1,9 +1,14 @@
 const AppError = require('../utilities/appError');
 const catchAsync = require('../utilities/catchAsync');
+const ApiFeatures = require('../utilities/apiFeatures');
 
 exports.retriveAll = (model) =>
   catchAsync(async (req, res, next) => {
-    const user = await model.find();
+    const user = await new ApiFeatures(model.find().lean(), req.query)
+      .filtering()
+      .fields()
+      .sorting()
+      .pagination().query;
     if (!user) {
       return next(new AppError('No users found on this data base', 404));
     }
@@ -99,5 +104,65 @@ exports.reactivate = (model) =>
       data: {
         user,
       },
+    });
+  });
+
+//Functions for profile update
+const updateFilter = (fields, data) => {
+  const objectValues = {};
+  fields.forEach((key) => {
+    if (data[key] !== undefined) objectValues[key] = data[key];
+  });
+
+  return objectValues;
+};
+
+const allowedFields = {
+  PatientData: [
+    'name',
+    'phone',
+    'gender',
+    'dateOfBirth',
+    'address',
+    'emergencyContact',
+    'bloodType',
+    'medicalHistory',
+    'allergies',
+    'medications',
+    'photo',
+    'userTestResult',
+  ],
+  DoctorData: [
+    'name',
+    'phone',
+    'gender',
+    'languageSpoken',
+    'specialization',
+    'yearsOfExperience',
+    'bio',
+    'availability',
+  ],
+};
+
+exports.updateProfile = (model) =>
+  catchAsync(async (req, res, next) => {
+    const userId = req.user.id;
+    const fields = allowedFields[model.modelName] || [];
+    const data = req.body;
+
+    const filtered = updateFilter(fields, data);
+
+    const update = await model.findByIdAndUpdate(userId, filtered, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!update) {
+      return next(new AppError('user not found', 404));
+    }
+
+    res.status(200).json({
+      status: 'success',
+      update,
     });
   });

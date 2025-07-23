@@ -22,5 +22,10 @@ const tutorialSchema = new mongoose.Schema({
   tags: [String],
 });
 
+tutorialSchema.pre(/^find/, function (next) {
+  this.populate({ path: 'postedBy', select: 'name specialization' });
+  next();
+});
+
 const Tutorial = mongoose.model('Tutorial', tutorialSchema);
 module.exports = Tutorial;

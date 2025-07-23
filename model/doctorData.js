@@ -47,6 +47,7 @@ const doctorSchema = new mongoose.Schema({
     enum: ['male', 'female', 'other'],
     required: true,
   },
+  photo: String,
   specialization: {
     type: String,
     required: [true, 'A doctor must have a specialization'],

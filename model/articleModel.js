@@ -38,6 +38,10 @@ const articleSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
+articleSchema.pre(/^find/, function (next) {
+  this.populate({ path: 'postedBy', select: 'name specialization' });
+  next();
+});
 
 const Article = mongoose.model('Article', articleSchema);
 module.exports = Article;

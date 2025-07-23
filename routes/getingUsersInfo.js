@@ -4,6 +4,7 @@ const usersController = require('../controllers/userControllers');
 const authentication = require('../controllers/authentication');
 const userAuthentication = require('../controllers/userAuthentication');
 const fileController = require('../controllers/fileController');
+const photoUpdate = require('../controllers/photoUpdate');
 
 userRoute.use(userAuthentication.protect);
 //Get all users
@@ -15,7 +16,9 @@ userRoute
   ); // for admins only
 
 //fetch user profile
-userRoute.route('/profile').get(usersController.userProfile);
+userRoute
+  .route('/profile')
+  .get(authentication.restrictTo('patient'), usersController.userProfile);
 
 userRoute.post(
   '/postAdmin',
@@ -40,8 +43,12 @@ userRoute.patch(
 );
 //update photo
 userRoute
-  .route('/updatephoto')
-  .patch(fileController.uploadUserPhoto, fileController.savePhotoToCloudinary);
+  .route('/update/photo')
+  .patch(
+    authentication.restrictTo('patient'),
+    fileController.uploadUserPhoto,
+    photoUpdate.patientUpdateprofilePix
+  );
 
 //uploading test result
 userRoute.patch(
@@ -50,5 +57,11 @@ userRoute.patch(
   fileController.uploadUserfile,
   fileController.testResult
 );
-
+//update profile
+userRoute
+  .route('/update/profile')
+  .patch(
+    authentication.restrictTo('patient'),
+    usersController.updateUserProfile
+  );
 module.exports = userRoute;
