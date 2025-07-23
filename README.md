@@ -15,8 +15,6 @@ Notifications – Real-time updates for bookings, referrals, and reports.
 Reporting & Investigation – Secure handling of complaints and misconduct reports.
 
 Tech Stack
-Frontend: React (or your frontend stack)
-
 Backend: Node.js, Express.js
 
 Database: MongoDB (Mongoose)
