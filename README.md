@@ -1,4 +1,4 @@
-Health Management System
+                                              Health Management System
 A scalable and secure web application designed to streamline healthcare operations. It enables doctors, patients, and administrators to manage consultations, bookings, tutorials, and health records efficiently.
 
 Features
